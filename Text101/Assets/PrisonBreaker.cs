@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+
 public class PrisonBreaker : MonoBehaviour {
 
     private Text prisonStateInfo;
@@ -15,7 +16,8 @@ public class PrisonBreaker : MonoBehaviour {
     enum CorridorStates
     {
         corridor_1, corridor_2, corridor_3, corridor_4, corridor_5, corridor_6, corridor_7, floor_1,
-        floor_2, closet_1, closet_2, stairs_1, stairs_2, officer_1, officer_2, busted, finished
+        floor_2, closet_1, closet_2, closet_3, closet_4, stairs_1, stairs_2, stairs_3, officer_1, officer_2,
+        officer_3, locker, shelf, drawers
     }
 
     enum PrisonState
@@ -29,6 +31,8 @@ public class PrisonBreaker : MonoBehaviour {
     CorridorStates lastCorrState;
 
     PrisonState prisonState;
+    private string bustedInfo = "";
+    
 
     private float timeToAnalyze;
     private float timeBeforeAlert;
@@ -38,17 +42,20 @@ public class PrisonBreaker : MonoBehaviour {
     private bool checkingCells;
     private bool haveHairClip;
     private bool haveKey;
+    private bool isLightOn;
+    private bool busted;
+    private bool finished;
 
-    
+
 
     private const float ANALYZING_TIME = 5.0f;
-    private const float ALERTING_TIME = 60f;
+    private const float ALERT_TIME = 60f;
 
 	// Use this for initialization
 	void Start () {
         cellState = CellStates.cell_1;
         lastCellState = cellState;
-        prisonState = PrisonState.cell;
+        prisonState = PrisonState.corridor;
         prisonStateInfo = GetComponent<Text>();
         haveKey = false;
         Reinitialize();
@@ -58,10 +65,11 @@ public class PrisonBreaker : MonoBehaviour {
     {
         corrState = CorridorStates.corridor_1;
         lastCorrState = corrState;
-        timeBeforeAlert = ALERTING_TIME;
+        timeBeforeAlert = ALERT_TIME;
         timeToAnalyze = ANALYZING_TIME;
         checkingCells = false;
         haveHairClip = false;
+        isLightOn = true;
     }
 	
 	// Update is called once per frame
@@ -261,17 +269,360 @@ public class PrisonBreaker : MonoBehaviour {
 
     void onCorridorState()
     {
-        prisonStateInfo.text = "Corridor...";
+        if (finished ==true)
+        {
+            onFinish();
+            return;
+        }
+        else if(busted == true)
+        {
+            onBusted();
+            return;
+        }
+
+        if(checkingCells == true)
+        {
+            timeBeforeAlert = Mathf.Clamp(timeBeforeAlert - Time.deltaTime, 0, ALERT_TIME);
+            if(timeBeforeAlert < 0.1f)
+            {
+                busted = true;
+            }
+        }
+
+
+        if(Input.GetKeyDown(KeyCode.R))
+        {
+            corrState = lastCorrState;
+        }
+
+        if(corrState == CorridorStates.corridor_1)
+        {
+            if (haveHairClip == true)
+            {
+                prisonStateInfo.text = "You've found hairclip.\n" +
+                                        "You can check out this corridor or either move forward to next one.\n" +
+                                        "[ Press A to move Ahead, C to check Closet, S to check Stairs ]";
+            }
+            else
+            {
+                prisonStateInfo.text = "You're in the prison corridor.\n" +
+                                        "You can check out this corridor or either move forward to next one.\n" +
+                                        "[ Press A to move Ahead, C to check Closet, S to check Stairs, F to check Floor]";
+            }
+
+
+            if(Input.GetKeyDown(KeyCode.F))
+            {
+                haveHairClip = true;
+                
+            }
+            else if(Input.GetKeyDown(KeyCode.A))
+            {
+                corrState = CorridorStates.corridor_2;
+                lastCorrState = corrState;
+            }
+            else if(Input.GetKeyDown(KeyCode.S))
+            {
+                prisonStateInfo.text = "You climbed stairs where you find electrical paneling with some open unsecured wires.\n" +
+                                        "[ Press T to try turn off the power, R for Return ]";
+                corrState = CorridorStates.stairs_1;
+            }
+            else if(Input.GetKeyDown(KeyCode.C))
+            {
+                prisonStateInfo.text = "You're in the closet. You regret going here becouse of the smell.\n" +
+                                        "[ Press R for Return ]";
+                corrState = CorridorStates.closet_1;
+            }
+
+        }
+        else if(corrState == CorridorStates.corridor_2)
+        {
+            prisonStateInfo.text = "You've moved to next corridor. You see light from officers room.\n" +
+                                    "You can lookout in closet or stairs in new corridor.\n" +
+                                    "[ Press O to inspect Officers room, C for check Closet, S for check Stairs]";
+
+            if (Input.GetKeyDown(KeyCode.O))
+            {
+                prisonStateInfo.text = "You're next to the officers room.\n" +
+                                        "[ Hold I to inspect room, R to Return ]";
+
+                corrState = CorridorStates.officer_1;
+
+            }
+            else if (Input.GetKeyDown(KeyCode.S))
+            {
+                prisonStateInfo.text = "You climbed stairs where you found nothing useful.\n" +
+                                        "[ R for Return ]";
+                corrState = CorridorStates.stairs_2;
+            }
+            else if (Input.GetKeyDown(KeyCode.C))
+            {
+                prisonStateInfo.text = "You're again in the closet. Yes it's smells horrible\n." +
+                                        "[ Press R for Return ]";
+                corrState = CorridorStates.closet_1;
+            }
+        }
+        else if (corrState == CorridorStates.corridor_3)
+        {
+            prisonStateInfo.text = "You don't have much time before officer goes out to check cells.\n" + 
+                                    "You need to choose a place to hide.\n" +
+                                    "[ Press C for hide in Closet, S for climb stairs and hide behind corner ]";
+
+            if (Input.GetKeyDown(KeyCode.S))
+            {
+                prisonStateInfo.text = "You climbed stairs where you found nothing useful.\n" +
+                                        "[ R for Return ]";
+                corrState = CorridorStates.stairs_2;
+            }
+            else if (Input.GetKeyDown(KeyCode.C))
+            {
+                corrState = CorridorStates.closet_2;
+                bustedInfo = "As you were deciding what you gonna do in the closet officer have alerted gone prisoner...";
+            }
+        }
+        else if (corrState == CorridorStates.corridor_4)
+        {
+            if (isLightOn == true)
+            {
+                prisonStateInfo.text = "You've climbed down stairs.\n" +
+                                        "The only choice right now would be to find something useful in officer room. \n" +
+                                        "[ Press O to Inspect Officers room again ]";
+            }
+            else
+            {
+                prisonStateInfo.text = "You've leaved closet room.\n" +
+                                        "The only choice right now would be to find something useful in officer room. \n" +
+                                        "[ Press O to Inspect Officers room again ]";
+            }
+
+            if (Input.GetKeyDown(KeyCode.O))
+            {
+                corrState = CorridorStates.officer_2;
+                lastCorrState = corrState;
+                timeBeforeAlert = ALERT_TIME * 0.25f;
+            }
+
+        }
+        else if (corrState == CorridorStates.corridor_5)
+        {
+            prisonStateInfo.text = "You've dressed as cleaner and pretending to work at the corridor.\n" +
+                                    "You hear steps coming... \n" +
+                                    "Officer doesn't seemed to pay attention to you\n" +
+                                    "[ Press M whenever you're ready to Move ]";
+
+            if(Input.GetKeyDown(KeyCode.M))
+            {
+                finished = true;
+            }
+
+        }
+        else if(corrState == CorridorStates.corridor_6)
+        {
+            prisonStateInfo.text = "You've climbed down in dark.\n" +
+                                    "You hear noise from officer room. You should hide\n" +
+                                    "[ C to hide in Closet ]";
+            if(Input.GetKeyDown(KeyCode.C))
+            {
+
+            }
+
+        }
+        else if(corrState == CorridorStates.stairs_1 && Input.GetKeyDown(KeyCode.T))
+        {
+            int random = Random.Range(0, 10);
+            if(random >5)
+            {
+                busted = true;
+                bustedInfo = "You've been shocked. Prison officers found you on the next floor...";
+            }
+            else
+            {
+                corrState = CorridorStates.stairs_3;
+                lastCorrState = corrState;
+                isLightOn = false;
+                checkingCells = true;
+                timeBeforeAlert = ALERT_TIME;
+            }
+        }
+        else if(corrState == CorridorStates.stairs_3)
+        {
+            if (isLightOn == true)
+            {
+                prisonStateInfo.text = "As you sit and wait behind corner you hear closing doors\n" +
+                                        "and steps in lower floor. As the steps sound fades away you think it's time to move.\n" +
+                                        "[ Press D for climb Down ]";
+            }
+            else
+            {
+                prisonStateInfo.text = "You've turned the light off.\n" + 
+                                        "You've some time to climb down and hide before someone comes to check the light\n" + 
+                                        "[ Press D for climb Down ]";
+            }
+            if(Input.GetKeyDown(KeyCode.D))
+            {
+                corrState = CorridorStates.corridor_6;
+                if (isLightOn == true)
+                {
+                    corrState = CorridorStates.corridor_4;  
+                }
+                
+            }
+        }
+        else if(corrState == CorridorStates.closet_2)
+        {
+            prisonStateInfo.text = "You're in closet. Therefore afer a moment you find something useful.\n" +
+                                    "There lies cleaner uniform and a broom hidden under the sink.\n" + 
+                                    "You can pretend to be cleaner or just wait officer to pass closet.\n" +
+                                    "[ Press D to Dress as a cleaner, W to Wait for officer to pass ]";
+
+            if(Input.GetKeyDown(KeyCode.D))
+            {
+                corrState = CorridorStates.corridor_5;
+                lastCorrState = corrState;
+            }
+            else if(Input.GetKeyDown(KeyCode.W))
+            {
+                corrState = CorridorStates.closet_3;
+                lastCorrState = corrState;
+                busted = true;
+                bustedInfo = "You hear steps nearby. After a few moments they've passed by" +
+                                    "Instantly you've been relievd that he passed...\n" +
+                                    "But right away you see doors opening.\n" +
+                                    "It seems that you both wanted to be in the same place...";
+            }
+        }
+        else if(corrState == CorridorStates.closet_4)
+        {
+            prisonStateInfo.text = "You hear climbing noises.\n" +
+                                    "It's a good opportunity to move\n" +
+                                    "[ Press L to Leave closet]";
+            if(Input.GetKeyDown(KeyCode.L))
+            {
+
+            }
+        }
+        else if(corrState == CorridorStates.officer_1)
+        {
+            if(Input.GetKey(KeyCode.I))
+            {
+                timeToAnalyze = Mathf.Clamp(timeToAnalyze - Time.deltaTime, 0, ANALYZING_TIME);
+                prisonStateInfo.text = "Officer is sitting on the chair against TV.\n" +
+                                        "He must be into it becouse he pays no attention elsewhere.\n" +
+                                        "You see check cells schedule, current time\n" +
+                                        "There're few minutes left before he gets out";
+                if(timeToAnalyze < 0.1f)
+                {
+                    corrState = CorridorStates.corridor_3;
+                    lastCorrState = corrState;
+                    checkingCells = true;
+                    bustedInfo = "You were choosing hiding place too long and prison officer have found you.";
+                }              
+            }
+            else if(timeToAnalyze > (ANALYZING_TIME - 0.1f))
+            {
+                prisonStateInfo.text = "You're next to officer room.\n" +
+                                        "[ Hold I longer to fully inspect room, R to Return ]";
+            }
+            else
+            {
+                prisonStateInfo.text = "You have not inspected all neccessary things in room.\n" +
+                                        "[ Hold I longer to fully inspect room, R to Return ]";
+                timeToAnalyze = ANALYZING_TIME - 0.2f;
+            }
+
+        }
+        else if(corrState == CorridorStates.officer_2)
+        {
+            prisonStateInfo.text = "You're in officers room where in front of you is locker \n" +
+                                        "on the right side a shelf and desk with drawers on the left side.\n" +
+                                        "[ Press L to check Locker, S to check Shelf, D to check Drawers ]";
+
+            if (Input.GetKeyDown(KeyCode.L))
+            {
+                prisonStateInfo.text = "The locker is locked and you cannot unlock it.\n" +
+                                        "[ Press R to Return ]";
+                corrState = CorridorStates.locker;
+                bustedInfo = "While looking at the locker.\n";
+            }
+            else if(Input.GetKeyDown(KeyCode.S))
+            {
+                prisonStateInfo.text = "The look up the shelf but you dont see anything useful.\n" +
+                                        "[ Press R to Return ]";
+                corrState = CorridorStates.shelf;
+                bustedInfo = "While looking at the shelf.\n";
+            }
+            else if(Input.GetKeyDown(KeyCode.D) && haveHairClip == false)
+            {
+                prisonStateInfo.text = "You try to open the drawers but you see that they are locked.\n" + 
+                                        "You dont have anythink to pick it .\n" +
+                                        "[ Press R to Return ]";
+                corrState = CorridorStates.drawers;
+                bustedInfo = "While trying to open drawers.\n";
+            }
+            else if (Input.GetKeyDown(KeyCode.D))
+            {
+                corrState = CorridorStates.officer_3;
+                lastCorrState = corrState;
+                bustedInfo = "While searching drawers.\n";
+            }
+        }
+        else if(corrState == CorridorStates.officer_3)
+        {
+            prisonStateInfo.text = "You've picked a drawers lock. You open it and take keys that may prove to be useful.\n" +
+                                    "[ Press L to check Locker, S to check Shelf ]";
+
+            if (Input.GetKeyDown(KeyCode.L))
+            {
+                prisonStateInfo.text = "You use keys to unlock locker. There you find a additional prison officer suit.\n" +
+                                        "[ Press D to dress ]";
+                corrState = CorridorStates.locker;
+                bustedInfo = "While looking at the locker.\n";
+            }
+            else if (Input.GetKeyDown(KeyCode.S))
+            {
+                prisonStateInfo.text = "The look up the shelf but you dont see anything useful.\n" +
+                                        "[ Press R to Return ]";
+                corrState = CorridorStates.shelf;
+                bustedInfo = "While looking at the shelf.\n";
+            }
+
+        }
+        else if(corrState == CorridorStates.locker && lastCorrState == CorridorStates.officer_3)
+        {
+            if(Input.GetKeyDown(KeyCode.D))
+            {
+                finished = true;
+            }
+        }
+
     }
 
     void onFinish()
     {
-
+        if(corrState == CorridorStates.locker)
+        {
+            prisonStateInfo.text = "You've dressed as prison officer and walked out of a jail." +
+                                    "Other officers didin't seemed to have spoted you as a prisoner." +
+                                    "Congratulations! You are free... for now";
+        }
+        else if(corrState == CorridorStates.corridor_5)
+        {
+            prisonStateInfo.text = "You've dressed as cleaner and walked out of a jail." +
+                                    "Other officers didin't seemed to have spoted you as a prisoner." +
+                                    "Congratulations! You are free... for now";
+        }
     }
 
     void onBusted()
     {
+        prisonStateInfo.text = bustedInfo + "\n[ Press R to Retry corridor level ]";
 
+
+
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            Reinitialize();
+        }
     }
 
 
