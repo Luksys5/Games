@@ -2,18 +2,18 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
-public class ToggleBehaviour : MonoBehaviour {
+public class GUIBehaviour : MonoBehaviour {
 
     public Toggle playerToogle;
     public Toggle pcToogle;
+
     // 1 - player, 0 - pc
     public bool whoIsActive;
 
-
-    private void Start()
-    {
-        whoIsActive = playerToogle.isOn;
+    enum ScenesIndex {
+        StartScene, PlayerGuess, PCGuess
     }
 
     private void Update()
@@ -32,6 +32,20 @@ public class ToggleBehaviour : MonoBehaviour {
                 Debug.Log("PC Active");
             }
         }
+    }
+
+    public void loadLevel()
+    {
+        if (playerToogle.isOn == true)
+        {
+            SceneManager.LoadScene((int)ScenesIndex.PlayerGuess);
+        }
+        else
+        {
+            SceneManager.LoadScene((int)ScenesIndex.PCGuess);
+        }
+
+        
     }
 
 }
