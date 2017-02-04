@@ -12,10 +12,6 @@ public class GUIBehaviour : MonoBehaviour {
     // 1 - player, 0 - pc
     public bool whoIsActive;
 
-    enum ScenesIndex {
-        StartScene, PlayerGuess, PCGuess
-    }
-
     private void Update()
     {
         if(playerToogle.isOn == pcToogle.isOn)
@@ -38,11 +34,11 @@ public class GUIBehaviour : MonoBehaviour {
     {
         if (playerToogle.isOn == true)
         {
-            SceneManager.LoadScene((int)ScenesIndex.PlayerGuess);
+            SceneManager.LoadScene(GlobalData.PlayerGuessBuildIndex);
         }
         else
         {
-            SceneManager.LoadScene((int)ScenesIndex.PCGuess);
+            SceneManager.LoadScene(GlobalData.PCGUessBuildIndex);
         }
 
         
