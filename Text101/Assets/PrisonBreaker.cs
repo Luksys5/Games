@@ -270,15 +270,6 @@ public class PrisonBreaker : MonoBehaviour {
 
     void onCorridorState()
     {
-        //if (Input.GetKeyDown(KeyCode.T))
-        //{
-        //    Debug.Log("Corridor State: " + corrState.ToString());
-        //    Debug.Log("Last Corridor State: " + lastCorrState.ToString());
-        //    Debug.Log("Hairclip: " + haveHairClip.ToString());
-        //    Debug.Log("time before alert: " + timeBeforeAlert.ToString());
-        //    Debug.Log("Corridor State: " + corrState);
-        //}
-
         if (finished == true)
         {
             onFinish();
@@ -333,7 +324,8 @@ public class PrisonBreaker : MonoBehaviour {
             }
             else if(Input.GetKeyDown(KeyCode.S))
             {
-                reportOnStairs("first corridor stairs");
+                prisonStateInfo.text = "You climbed stairs where you find electrical paneling with some open unsecured wires.\n" +
+                                            "[ Press T to try turn off the power, R for Return ]";
                 corrState = CorridorStates.stairs_1;
             }
             else if(Input.GetKeyDown(KeyCode.C))
@@ -417,6 +409,8 @@ public class PrisonBreaker : MonoBehaviour {
                 corrState = CorridorStates.officer_2;
                 lastCorrState = corrState;
                 timeBeforeAlert = ALERT_TIME;
+                bustedInfo = "Officer alerted others of escaped prisoner while you were looking in the officer room...\n" +
+                                "[ Press R to Retry ]";
             }
 
         }
@@ -445,10 +439,12 @@ public class PrisonBreaker : MonoBehaviour {
             if(Input.GetKeyDown(KeyCode.C))
             {
                 corrState = CorridorStates.bathroom_3;
+                lastCorrState = corrState;
             }
             else if(Input.GetKeyDown(KeyCode.W))
             {
                 corrState = CorridorStates.corner;
+                lastCorrState = corrState;
                 bustedInfo = "You wait in the corner for officer to pass by...\n" +
                                 "And the moment you've remembered that officer uses flashlight\n" +
                                 "you saw a light which flashed right from corridor wall to your face\n" +
@@ -533,6 +529,8 @@ public class PrisonBreaker : MonoBehaviour {
             {
                 corrState = CorridorStates.officer_2;
                 lastCorrState = corrState;
+                bustedInfo = "Officer alerted others of escaped prisoner while you were looking in the officer room...\n" +
+                                "[ Press R to Retry ]";
             }
         }
         else if(corrState == CorridorStates.officer_1)
@@ -574,9 +572,7 @@ public class PrisonBreaker : MonoBehaviour {
                                         "on the right side a shelf and desk with drawers on the left side.\n" +
                                         "[ Press L to check Locker, S to check Shelf, D to check Drawers ]";
 
-            bustedInfo = "Officer alerted others of escaped prisoner while you were looking in the officer room...\n" +
-                            "[ Press R to Retry ]";
-
+            
             if (Input.GetKeyDown(KeyCode.L))
             {
                 prisonStateInfo.text = "The locker is locked and you cannot unlock it.\n" +
