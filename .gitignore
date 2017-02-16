@@ -4,6 +4,10 @@
 /[Bb]uild/
 /[Bb]uilds/
 /Assets/AssetStoreTools*
+*/Assets/Standard Assets*
+*/Assets/PhotonChatApi*
+*/Assets/Photon Unity Networking*
+
 /GuessNumber/Assets/Textures/*.png*
 /GuessNumber/Assets/Textures/*.jpg*
 
