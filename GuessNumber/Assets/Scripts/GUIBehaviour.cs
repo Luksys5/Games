@@ -1,8 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using GuessNumber;
 
 public class GUIBehaviour : MonoBehaviour {
 
@@ -40,15 +39,15 @@ public class GUIBehaviour : MonoBehaviour {
         
         if (playerToogle.isOn == true)
         {
-            SceneManager.LoadScene(GlobalData.PlayerGuessBuildIndex);
+            SceneManager.LoadScene(BuildIndex.PlayerGuess);
         }
         else if(pcToogle.isOn == true)
         {
-            SceneManager.LoadScene(GlobalData.PCGUessBuildIndex);
+            SceneManager.LoadScene(BuildIndex.PCGUess);
         }
         else if (multiToggle.isOn == true)
         {
-            SceneManager.LoadScene(GlobalData.MultiplayerBuildIndex);
+            SceneManager.LoadScene(BuildIndex.GuessMultiplayerMenu);
         }
 
     }

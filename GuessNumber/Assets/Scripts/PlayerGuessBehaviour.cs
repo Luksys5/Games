@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using GuessNumber;
 
 public class PlayerGuessBehaviour : MonoBehaviour {
 
@@ -135,6 +136,6 @@ public class PlayerGuessBehaviour : MonoBehaviour {
 
     public void BackToStartScene()
     {
-        SceneManager.LoadScene(GlobalData.StartSceneBuildIndex);
+        SceneManager.LoadScene(BuildIndex.MainMenu);
     }
 }
