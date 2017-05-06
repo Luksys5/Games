@@ -25,6 +25,7 @@ namespace GuessNumber {
     {
         public const int MAX_GUESS = 100;
         public const int MIN_GUESS = 1;
+        public const int GUESS_LEFT_DEFAULT = 5;
         public static int clientGuess = 0;
         public static int hostGuess = 0;
         public static int hostScore = 0;
@@ -39,14 +40,25 @@ namespace GuessNumber {
         }
     }
 
+    public static class WINUINames
+    {
+        public const string HostWinUIName = "HostWin";
+        public const string clientWinUIName = "ClientWin";
+        public const string stalemateUIName = "Stalemate";
+    }
+
     public static class NetworkVariables
     {
         public static string serverAddr = "";
         public static string port = "";
+        public static string hostName = "";
+        public static string clientName = "";
+
         public static int hostID = 0;
         public static int clientID = 1;
+
         public static bool isHost = false;
         public static bool ownerChanged = false;
-        
+        public static bool clientConnected = false;
     }
 }

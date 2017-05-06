@@ -9,6 +9,8 @@ namespace GuessNumber
         public Text errInfo;
         public InputField serverAdress;
         public InputField serverPort;
+        public InputField hostName;
+        public InputField clientName;
 
         private GameObject labels;
 
@@ -81,12 +83,20 @@ namespace GuessNumber
 
         public void Host()
         {
-            if (!PhotonNetwork.connectedAndReady)
+            if(string.IsNullOrEmpty(hostName.text))
             {
+                errInfo.text = "Host name must be filled!";
                 labels.SetActive(true);
-                errInfo.text = "Couldn't host room. Try relaunching photon server";
                 return;
             }
+
+            if (!PhotonNetwork.connectedAndReady)
+            {
+                errInfo.text = "Couldn't host room. Try relaunching photon server";
+                labels.SetActive(true);
+                return;
+            }
+            NetworkVariables.hostName = hostName.text;
             RoomOptions roomOpts = new RoomOptions() { IsVisible = true, MaxPlayers = 2 };
             PhotonNetwork.CreateRoom(ROOM_NAME, roomOpts, TypedLobby.Default);
         }
@@ -94,19 +104,27 @@ namespace GuessNumber
 
         public void Join()
         {
-            if (!PhotonNetwork.connectedAndReady)
+            if (string.IsNullOrEmpty(clientName.text))
             {
-                GameObject.FindGameObjectWithTag(Tags.Labels).SetActive(true);
-                errInfo.text = "Couldn't join room. Try relaunching photon server";
+                errInfo.text = "Client name must be filled!";
+                labels.SetActive(true);
                 return;
             }
+
+            if (!PhotonNetwork.connectedAndReady)
+            {
+                errInfo.text = "Couldn't join room. Try relaunching photon server";
+                labels.SetActive(true);
+                return;
+            }
+            NetworkVariables.clientName = clientName.text;
             PhotonNetwork.JoinRoom(ROOM_NAME);
         }
 
         public override void OnFailedToConnectToPhoton(DisconnectCause cause)
         {
-            labels.SetActive(true);
             errInfo.text = "Couldn't connect to server check if it's running. Adress: " + PhotonNetwork.ServerAddress;
+            labels.SetActive(true);
             return;
         }
 
