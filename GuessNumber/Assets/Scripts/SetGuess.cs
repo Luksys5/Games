@@ -6,14 +6,13 @@ namespace GuessNumber
     public class SetGuess : MonoBehaviour {
 
         public GameObject errorInfo;
+        public Button setGuessBtn;
         public InputField input;
         public Text hostScoreInfo;
+        public Text clientScoreInfo;
 
-        private GameController gc;
         private GameObject error;
         private Text errorInfoText;
-
-        private string hostName;
 
         private int guess;
 
@@ -21,11 +20,7 @@ namespace GuessNumber
 
         private void Start()
         {
-            hostName = NetworkVariables.hostName;
-            hostScoreInfo.text = NetworkVariables.hostName + " Score";
-
             connectStatusChanged = false;
-            gc = GameObject.FindGameObjectWithTag(Tags.Loader).GetComponent<GameController>();
             guess = 0;
 
             errorInfoText = errorInfo.GetComponent<Text>();
@@ -37,11 +32,16 @@ namespace GuessNumber
         {
             connectStatusChanged = false;
             guess = 0;
-            
         }
 
         private void Update()
         {
+            if (GuessVariables.readyToGuess == false && setGuessBtn.IsInteractable() == false)
+                setGuessBtn.interactable = true;
+
+            if (NetworkVariables.isHost == false)
+                return;
+
             if (NetworkVariables.clientConnected == false)
             {
                 errorInfoText.text = "Client has not connected yet";
@@ -51,6 +51,11 @@ namespace GuessNumber
             {
                 connectStatusChanged = true;
                 error.SetActive(false);
+            }
+
+            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+            {
+                InputGuess();
             }
         }
 
@@ -64,15 +69,21 @@ namespace GuessNumber
             {
                 if(GuessVariables.MIN_GUESS <= outGuess && GuessVariables.MAX_GUESS >= outGuess)
                 {
+                    setGuessBtn.interactable = false;
                     guess = outGuess;
-                    NetworkVariables.ownerChanged = true;
+
                     error.SetActive(false);
+                    input.selectionColor = Color.blue;
+                    NetworkVariables.ownerChanged = true;
+                    GuessVariables.readyToGuess = true;
                 }
                 else
                 {
                     errorInfoText.text = "Guess must be a value from " + GuessVariables.MIN_GUESS.ToString() + " to " + GuessVariables.MAX_GUESS.ToString();
                     error.SetActive(true);
+                    input.selectionColor = Color.red;
                 }
+
             }
             else
             {
@@ -82,28 +93,28 @@ namespace GuessNumber
             }
         }
 
+
         void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
         {
             if (stream.isWriting)
             {
                 stream.SendNext(guess);
                 stream.SendNext(NetworkVariables.ownerChanged);
-                stream.SendNext(hostName);
+
                 GuessVariables.hostGuess = guess;
             }
             else
             {
                 guess = (int)stream.ReceiveNext();
                 bool ownerChanged = (bool)stream.ReceiveNext();
-                hostName = (string)stream.ReceiveNext();
-                hostScoreInfo.text = hostName + " Score";
 
                 GuessVariables.hostGuess = guess;
                 if (guess != 0 && ownerChanged == true)
                 {
                     GuessVariables.readyToGuess = true;
-                    GuessVariables.GuessIsSet = true;
                 }
+
+                
             }
 
         }

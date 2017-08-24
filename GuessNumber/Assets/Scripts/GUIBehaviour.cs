@@ -8,6 +8,8 @@ public class GUIBehaviour : MonoBehaviour {
     public Toggle playerToogle;
     public Toggle pcToogle;
     public Toggle multiToggle;
+    public Font font;
+
 
     // 0 - player, 1 - pc, 2 multiplayer
     public int whoIsActive;
@@ -50,6 +52,11 @@ public class GUIBehaviour : MonoBehaviour {
             SceneManager.LoadScene(BuildIndex.GuessMultiplayerMenu);
         }
 
+    }
+
+    public void OnExitGame()
+    {
+        Application.Quit();
     }
 
 }

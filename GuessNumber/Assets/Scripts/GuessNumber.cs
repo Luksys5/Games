@@ -1,6 +1,9 @@
 ﻿using Photon;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
+using UnityEngine.SceneManagement;
+using System.Collections;
 
 namespace GuessNumber
 {
@@ -8,30 +11,34 @@ namespace GuessNumber
     public class GuessNumber : PunBehaviour
     {
         public GameObject errorInfo;
+        public Button GuessBtn;
         public InputField input;
         public Text hostScore;
+        public Text hostScoreInfo;
         public Text clientScore;
         public Text clientScoreInfo;
-
+        
         private GameObject error;
         private GameController gc;
         private Text errorInfoText;
-
-        private string clientName;
 
         private int guess;
         private int score;
 
         private bool changeOwner;
         private bool clientConnect = false;
-
+        private bool notConnectedSet = false;
+        private bool showClientGuess = true;
 
         private void Start()
         {
-            clientName = NetworkVariables.clientName;
-            if(string.IsNullOrEmpty(clientName) == false)
-                clientScoreInfo.text = clientName + " Score";
-
+            if (PhotonNetwork.isMasterClient)
+                hostScoreInfo.text = PhotonNetwork.playerName + " Score";
+            else
+            {
+                clientScoreInfo.text = PhotonNetwork.playerName + " Score";
+                showClientGuess = false;
+            }
             error = errorInfo.transform.parent.gameObject;
             errorInfoText = errorInfo.GetComponent<Text>();
             gc = GameObject.FindGameObjectWithTag(Tags.Loader).GetComponent<GameController>();
@@ -49,14 +56,36 @@ namespace GuessNumber
             clientConnect = true;
         }
 
+        private void Update()
+        {
+            if(GuessVariables.readyToGuess != GuessBtn.IsInteractable())
+                GuessBtn.interactable = !GuessBtn.interactable;
+
+            if (NetworkVariables.isHost)
+                return;
+
+            if (GuessVariables.readyToGuess == false && notConnectedSet == false)
+            {
+                notConnectedSet = true;
+                errorInfoText.text = "Oponnent is setting number";
+                error.SetActive(true);
+            }
+            else if(GuessVariables.readyToGuess == true && notConnectedSet == true)
+            {
+                notConnectedSet = false;
+                error.SetActive(false);
+            }
+
+            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+            {
+                OnGuess();
+            }
+        }
+
         public void OnGuess()
         {
-            if (GuessVariables.readyToGuess == false)
-            {
-                errorInfoText.text = "Oponnent didn't set number yet!";
-                error.SetActive(true);
+            if (GuessVariables.readyToGuess == false )
                 return;
-            }
 
 
             if(int.TryParse(input.text, out guess))
@@ -70,7 +99,8 @@ namespace GuessNumber
                 error.SetActive(false);
                 score = GuessVariables.calculateScore(guess);
                 changeOwner = true;
-                GuessVariables.GuessIsSet = false;
+                GuessVariables.clientGuess = guess;
+                showClientGuess = true;
             }
             else
             {
@@ -105,12 +135,23 @@ namespace GuessNumber
 
         private void OnGUI()
         {
+            if (GuessVariables.haveWon)
+                return;
+
             float quarterWidth = Screen.width * 0.25f;
-            float quarterHeight = Screen.height * 0.25f;
-            if (GuessVariables.GuessIsSet == false)
-                GUI.TextArea(new Rect(quarterWidth - 60, Screen.height - quarterHeight, 120, 40), "Last Set Guess: " + GuessVariables.hostGuess.ToString());
-            GUI.TextArea(new Rect(Screen.width - quarterWidth - 60, Screen.height - quarterHeight, 120, 40), "Last Guess: " + GuessVariables.clientGuess.ToString());
+            if (showClientGuess)
+                GUI.TextArea(new Rect(quarterWidth - 60, Screen.height * 0.5f - 20, 120, 40), "Last Set Guess: " + GuessVariables.hostGuess.ToString());
+            GUI.TextArea(new Rect(Screen.width - quarterWidth - 60, Screen.height * 0.5f - 20, 120, 40), "Last Guess: " + GuessVariables.clientGuess.ToString());
         }
+
+        void resetAndSwap()
+        {
+            gc.swapOwners();
+            guess = 0;
+            score = 0;
+            changeOwner = false;
+        }
+
 
         void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
         {
@@ -120,18 +161,11 @@ namespace GuessNumber
                 stream.SendNext(score);
                 stream.SendNext(changeOwner);
                 stream.SendNext(clientConnect);
-                stream.SendNext(clientName);
+                stream.SendNext(PhotonNetwork.playerName);
 
-                GuessVariables.clientGuess = guess;
                 SetScore(score, stream.isWriting);
                 if (changeOwner == true)
-                {
-                    gc.swapOwners();
-                    guess = 0;
-                    score = 0;
-                    changeOwner = false;
-                }
-                clientScoreInfo.text = NetworkVariables.clientName + " Score";
+                    resetAndSwap();
             }
             else
             {
@@ -139,22 +173,36 @@ namespace GuessNumber
                 score                               = (int)stream.ReceiveNext();
                 changeOwner                         = (bool)stream.ReceiveNext();
                 NetworkVariables.clientConnected    = (bool)stream.ReceiveNext();
-                clientName                          = (string)stream.ReceiveNext();
+                string opponentName                 = (string)stream.ReceiveNext();
 
-                GuessVariables.clientGuess = guess;
-                SetScore(score, stream.isWriting);
-                if(changeOwner == true)
-                {
-                    gc.swapOwners();
+                if (PhotonNetwork.isMasterClient)
+                    clientScoreInfo.text = opponentName + " Score";
+                else
+                    hostScoreInfo.text = opponentName + " Score";
 
-                    changeOwner = false;
-                    score = 0;
+                if (guess != 0 && GuessVariables.readyToGuess == true) {
+                    GuessVariables.clientGuess = guess;
+                    showClientGuess = false;
                 }
-                if (string.IsNullOrEmpty(clientName))
-                    clientName = NetworkVariables.clientName;
-                clientScoreInfo.text = clientName + " Score";
+
+                SetScore(score, stream.isWriting);
+                if (changeOwner == true)
+                    resetAndSwap();
             }
+
         }
+
+        public void OnBackPressed()
+        {
+            SceneManager.LoadScene(BuildIndex.GuessMultiplayerMenu);
+        }
+
+        public void OnQuitPressed()
+        {
+            PhotonNetwork.Disconnect();
+            Application.Quit();
+        }
+
     }
 
 }
