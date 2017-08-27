@@ -140,8 +140,8 @@ namespace GuessNumber
 
             float quarterWidth = Screen.width * 0.25f;
             if (showClientGuess)
-                GUI.TextArea(new Rect(quarterWidth - 60, Screen.height * 0.5f - 20, 120, 40), "Last Set Guess: " + GuessVariables.hostGuess.ToString());
-            GUI.TextArea(new Rect(Screen.width - quarterWidth - 60, Screen.height * 0.5f - 20, 120, 40), "Last Guess: " + GuessVariables.clientGuess.ToString());
+                GUI.TextArea(new Rect(quarterWidth - 60, Screen.height * 0.5f - 40, 120, 40), "Last Set Guess: " + GuessVariables.hostGuess.ToString());
+            GUI.TextArea(new Rect(Screen.width - quarterWidth - 50, Screen.height * 0.5f - 40, 120, 40), "Last Guess: " + GuessVariables.clientGuess.ToString());
         }
 
         void resetAndSwap()

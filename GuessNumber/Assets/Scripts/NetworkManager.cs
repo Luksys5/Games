@@ -29,7 +29,7 @@ namespace GuessNumber
         private const string appId = "24d3a1f4-57b0-46d1-8e62-a96a1aa64df8";
         private const string ROOM_NAME = "GuessNumber";
         private const string SERVER_VERSION = "v1.0";
-        private const float INPUT_HEIGHT = 35f;
+        private const float INPUT_HEIGHT = 30f;
 
 
         // Use this for initialization
@@ -54,7 +54,7 @@ namespace GuessNumber
 
             currentRoomViewHeight = roomView.sizeDelta.y;
             currentRoomViewPositionY = roomView.position.y;
-            currentRoomInputsPositionY = inputsRect.position.y;
+            currentRoomInputsPositionY = inputsRect.position.y - 1.5f;
 
             gameRoomName = GameObject.FindGameObjectWithTag("gameRoomName")?.GetComponent<InputField>();
 
@@ -142,31 +142,11 @@ namespace GuessNumber
 
         public void Connect()
         {
-            //if (serverAdress == null || serverPort == null || string.IsNullOrEmpty(serverAdress.text) || string.IsNullOrEmpty(serverPort.text))
-            //{
-            //    labels.SetActive(true);
-            //    errInfo.text = "Fill photon server adress and port";
-            //    return;
-            //}
-            //else
-            //if (int.TryParse(serverPort.text, out serverPortInt) == false)
-            //{
-            //    labels.SetActive(true);
-            //    errInfo.text = "Check photon server port value. Port example: 5055";
-            //    return;
-            //}
-            //else
-            //{
-            //    labels.SetActive(false);
-            //}
 
-
-            PhotonNetwork.ConnectToMaster("127.0.0.1", NetworkVariables.port, appId, SERVER_VERSION);
-            //PhotonNetwork.ConnectToRegion(CloudRegionCode.eu, SERVER_VERSION);
+            //PhotonNetwork.ConnectToMaster("127.0.0.1", NetworkVariables.port, appId, SERVER_VERSION);
+            PhotonNetwork.ConnectToRegion(CloudRegionCode.eu, SERVER_VERSION);
             PhotonNetwork.logLevel = PhotonLogLevel.Full;
             PhotonNetwork.automaticallySyncScene = true;
-            
-            NetworkVariables.serverAddr = serverAdress.text;
         }
 
         public void Host()
